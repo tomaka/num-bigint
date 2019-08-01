@@ -76,9 +76,29 @@
 //! The `num-bigint` crate is tested for rustc 1.15 and greater.
 
 #![doc(html_root_url = "https://docs.rs/num-bigint/0.2")]
-// We don't actually support `no_std` yet, and probably won't until `alloc` is stable.  We're just
-// reserving this ability with the "std" feature now, and compilation will fail without.
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
+
+#[cfg(feature = "std")]
+#[macro_use]
+extern crate std;
+
+#[cfg(feature = "std")]
+mod std_alloc {
+    pub use std::borrow::Cow;
+    pub use std::string::String;
+    pub use std::vec::Vec;
+}
+
+#[cfg(not(feature = "std"))]
+#[macro_use]
+extern crate alloc;
+
+#[cfg(not(feature = "std"))]
+mod std_alloc {
+    pub use alloc::borrow::Cow;
+    pub use alloc::string::String;
+    pub use alloc::vec::Vec;
+}
 
 #[cfg(feature = "rand")]
 extern crate rand;
@@ -88,8 +108,9 @@ extern crate serde;
 extern crate num_integer as integer;
 extern crate num_traits as traits;
 
+use core::fmt;
+#[cfg(feature = "std")]
 use std::error::Error;
-use std::fmt;
 
 #[macro_use]
 mod macros;
@@ -149,6 +170,7 @@ impl fmt::Display for ParseBigIntError {
     }
 }
 
+#[cfg(feature = "std")]
 impl Error for ParseBigIntError {
     fn description(&self) -> &str {
         self.__description()
